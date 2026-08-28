@@ -46,23 +46,27 @@ function draw(img: HTMLImageElement) {
  * instead of a pixelated grey texture.
  */
 function drawCloudsBlurred(img: HTMLImageElement) {
-  const SW = 128;
-  const SH = 64;
-  const small = document.createElement('canvas');
-  small.width = SW;
-  small.height = SH;
-  const sctx = small.getContext('2d')!;
-  sctx.imageSmoothingEnabled = true;
-  sctx.imageSmoothingQuality = 'high';
-  sctx.drawImage(img, 0, 0, SW, SH);
+  // pass 1: draw the cloud mask at half res behind a real gaussian blur
+  const MW = W / 2;
+  const MH = H / 2;
+  const mid = document.createElement('canvas');
+  mid.width = MW;
+  mid.height = MH;
+  const mctx = mid.getContext('2d')!;
+  if ('filter' in mctx) mctx.filter = 'blur(10px)';
+  mctx.drawImage(img, 0, 0, MW, MH);
+  mctx.filter = 'none';
 
+  // pass 2: blur again while upscaling — soft, smooth atmospheric coverage
   const c = document.createElement('canvas');
   c.width = W;
   c.height = H;
   const ctx = c.getContext('2d')!;
   ctx.imageSmoothingEnabled = true;
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(small, 0, 0, W, H);
+  if ('filter' in ctx) ctx.filter = 'blur(8px)';
+  ctx.drawImage(mid, 0, 0, W, H);
+  ctx.filter = 'none';
   return ctx.getImageData(0, 0, W, H).data;
 }
 

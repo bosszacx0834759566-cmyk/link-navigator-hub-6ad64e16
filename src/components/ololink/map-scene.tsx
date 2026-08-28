@@ -127,13 +127,107 @@ export function MapScene({ state }: { state: OloLinkState }) {
   const selectedLink = selection?.type === 'link' ? selection.id : null;
   const activeRegion = selectedAsset ? ASSET_BY_ID[selectedAsset]?.region ?? null : null;
 
+  /* ------------------------------------------------ flattened earth base */
+  const [basemap, setBasemap] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    earthBasemap()
+      .then((url) => {
+        if (alive) setBasemap(url);
+      })
+      .catch(() => undefined);
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  /* --------------------------------------------------------- pan & zoom */
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [view, setView] = useState({ z: 1, x: 0, y: 0 });
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+
+  const clamp = (z: number, x: number, y: number) => ({
+    z,
+    x: Math.min(0, Math.max(MAP_W * (1 - z), x)),
+    y: Math.min(0, Math.max(MAP_H * (1 - z), y)),
+  });
+
+  /** client point -> untransformed SVG user units */
+  const toSvg = (cx: number, cy: number) => {
+    const svg = svgRef.current;
+    if (!svg) return { x: 0, y: 0 };
+    const ctm = svg.getScreenCTM();
+    if (!ctm) return { x: 0, y: 0 };
+    const p = svg.createSVGPoint();
+    p.x = cx;
+    p.y = cy;
+    const q = p.matrixTransform(ctm.inverse());
+    return { x: q.x, y: q.y };
+  };
+
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 100 : 1);
+      const cur = viewRef.current;
+      const next = Math.min(14, Math.max(1, cur.z * Math.exp(-dy * 0.0016)));
+      if (next === cur.z) return;
+      const p = toSvg(e.clientX, e.clientY);
+      const k = next / cur.z;
+      setView(clamp(next, p.x - (p.x - cur.x) * k, p.y - (p.y - cur.y) * k));
+    };
+    svg.addEventListener('wheel', onWheel, { passive: false });
+    return () => svg.removeEventListener('wheel', onWheel);
+  }, []);
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+    (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const svg = svgRef.current;
+    const ctm = svg?.getScreenCTM();
+    const scale = ctm ? ctm.a || 1 : 1;
+    const dx = (e.clientX - d.x) / scale;
+    const dy = (e.clientY - d.y) / scale;
+    if (Math.abs(e.clientX - d.x) + Math.abs(e.clientY - d.y) > 3) d.moved = true;
+    d.x = e.clientX;
+    d.y = e.clientY;
+    const cur = viewRef.current;
+    setView(clamp(cur.z, cur.x + dx, cur.y + dy));
+  };
+  const endDrag = (e: React.PointerEvent) => {
+    if (dragRef.current) {
+      try {
+        (e.currentTarget as SVGSVGElement).releasePointerCapture(e.pointerId);
+      } catch {
+        /* pointer already released */
+      }
+    }
+    window.setTimeout(() => {
+      dragRef.current = null;
+    }, 0);
+  };
+  const dragged = () => dragRef.current?.moved ?? false;
+
+  const z = view.z;
+  const inv = 1 / z;
+
   const pointOf = (id: string) => {
     const ll = positions[id];
     const asset = ASSET_BY_ID[id];
     if (!ll || !asset) return null;
     const p = project(ll.lat, ll.lon);
     const o = PIXEL_OFFSET[asset.kind];
-    return { x: p.x + o.x, y: p.y + o.y };
+    // pixel fan-out is a screen-space nicety — undo it as the operator zooms in
+    return { x: p.x + o.x * inv, y: p.y + o.y * inv };
   };
 
   /** keep link endpoints on the same side of the antimeridian */

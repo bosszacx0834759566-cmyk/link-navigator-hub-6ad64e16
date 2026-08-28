@@ -410,7 +410,13 @@ export function MapScene({ state }: { state: OloLinkState }) {
                     strokeOpacity={0.85}
                     strokeDasharray={`${5 * inv} ${26 * inv}`}
                   >
-                    <animate attributeName="stroke-dashoffset" from="31" to="0" dur="1.1s" repeatCount="indefinite" />
+                    <animate
+                      attributeName="stroke-dashoffset"
+                      from={31 * inv}
+                      to="0"
+                      dur="1.1s"
+                      repeatCount="indefinite"
+                    />
                   </path>
                 )}
               </g>

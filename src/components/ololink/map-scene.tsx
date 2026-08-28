@@ -514,6 +514,20 @@ export function MapScene({ state }: { state: OloLinkState }) {
         <rect width={MAP_W} height={MAP_H} fill="url(#map-vignette)" pointerEvents="none" />
       </svg>
 
+      {/* quick weather overlay toggle */}
+      <button
+        type="button"
+        onClick={() => state.toggleLayer('weather')}
+        className={cn(
+          'absolute right-4 bottom-[70px] rounded-[10px] border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.2em] backdrop-blur-md transition-colors',
+          layers.weather
+            ? 'border-sky-300/25 bg-sky-400/10 text-sky-200/90 hover:bg-sky-400/20'
+            : 'border-white/[0.07] bg-[#070b14]/72 text-foreground/50 hover:text-foreground/80'
+        )}
+      >
+        {layers.weather ? 'Weather · on' : 'Weather · off'}
+      </button>
+
       {/* map-mode readout — operational clarity for routing */}
       <div className="pointer-events-none absolute bottom-[70px] left-4 rounded-[10px] border border-white/[0.07] bg-[#070b14]/72 px-3 py-2 backdrop-blur-md">
         <p className="font-mono text-[8px] uppercase tracking-[0.26em] text-sky-200/80">

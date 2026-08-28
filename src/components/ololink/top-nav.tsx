@@ -64,7 +64,7 @@ export function TopNav({
     <nav className="pointer-events-auto absolute inset-x-0 top-0 z-40 flex h-14 items-center gap-3 border-b border-white/[0.06] bg-black/60 px-4 backdrop-blur-xl">
       {/* brand mark */}
       <div className="flex shrink-0 items-center gap-2.5">
-        <img src={logoAsset.url} alt="OloLink logo" className="h-7 w-auto" />
+        <img src={logoUrl} alt="OloLink logo" className="h-7 w-auto" />
         <span className="text-[11px] font-semibold tracking-[0.28em] text-foreground">OLOLINK</span>
       </div>
 

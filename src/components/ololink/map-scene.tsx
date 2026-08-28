@@ -320,23 +320,23 @@ export function MapScene({ state }: { state: OloLinkState }) {
                   fill="none"
                   stroke={color}
                   strokeOpacity={0.5}
-                  strokeWidth={0.8}
-                  strokeDasharray="4 4"
+                  strokeWidth={0.8 * inv}
+                  strokeDasharray={`${4 * inv} ${4 * inv}`}
                 >
                   <animate attributeName="r" values={`${r};${r * 1.08};${r}`} dur="4s" repeatCount="indefinite" />
                 </circle>
-                <text
-                  x={p.x}
-                  y={p.y - r - 4}
-                  textAnchor="middle"
-                  fill={color}
-                  fillOpacity={0.75}
-                  fontSize={6}
-                  letterSpacing={1}
-                  className="font-mono uppercase"
-                >
-                  {c.kind} {c.severity}
-                </text>
+                <g transform={`translate(${p.x} ${p.y - r - 4}) scale(${inv})`}>
+                  <text
+                    textAnchor="middle"
+                    fill={color}
+                    fillOpacity={0.75}
+                    fontSize={6}
+                    letterSpacing={1}
+                    className="font-mono uppercase"
+                  >
+                    {c.kind} {c.severity}
+                  </text>
+                </g>
               </g>
             );
           })}

@@ -40,6 +40,32 @@ function draw(img: HTMLImageElement) {
   return ctx.getImageData(0, 0, W, H).data;
 }
 
+/**
+ * Soft-blurred cloud coverage: downscale the cloud texture hard, then upscale
+ * with smoothing so the baked clouds read as a smooth atmospheric layer
+ * instead of a pixelated grey texture.
+ */
+function drawCloudsBlurred(img: HTMLImageElement) {
+  const SW = 128;
+  const SH = 64;
+  const small = document.createElement('canvas');
+  small.width = SW;
+  small.height = SH;
+  const sctx = small.getContext('2d')!;
+  sctx.imageSmoothingEnabled = true;
+  sctx.imageSmoothingQuality = 'high';
+  sctx.drawImage(img, 0, 0, SW, SH);
+
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext('2d')!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(small, 0, 0, W, H);
+  return ctx.getImageData(0, 0, W, H).data;
+}
+
 let cache: Promise<string> | null = null;
 
 export function earthBasemap(): Promise<string> {

@@ -40,6 +40,36 @@ function draw(img: HTMLImageElement) {
   return ctx.getImageData(0, 0, W, H).data;
 }
 
+/**
+ * Soft-blurred cloud coverage: downscale the cloud texture hard, then upscale
+ * with smoothing so the baked clouds read as a smooth atmospheric layer
+ * instead of a pixelated grey texture.
+ */
+function drawCloudsBlurred(img: HTMLImageElement) {
+  // pass 1: draw the cloud mask at half res behind a real gaussian blur
+  const MW = W / 2;
+  const MH = H / 2;
+  const mid = document.createElement('canvas');
+  mid.width = MW;
+  mid.height = MH;
+  const mctx = mid.getContext('2d')!;
+  if ('filter' in mctx) mctx.filter = 'blur(10px)';
+  mctx.drawImage(img, 0, 0, MW, MH);
+  mctx.filter = 'none';
+
+  // pass 2: blur again while upscaling — soft, smooth atmospheric coverage
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const ctx = c.getContext('2d')!;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  if ('filter' in ctx) ctx.filter = 'blur(8px)';
+  ctx.drawImage(mid, 0, 0, W, H);
+  ctx.filter = 'none';
+  return ctx.getImageData(0, 0, W, H).data;
+}
+
 let cache: Promise<string> | null = null;
 
 export function earthBasemap(): Promise<string> {
@@ -52,7 +82,7 @@ export function earthBasemap(): Promise<string> {
     ]);
     const d = draw(day);
     const n = draw(night);
-    const cl = draw(clouds);
+    const cl = drawCloudsBlurred(clouds);
 
     const out = document.createElement('canvas');
     out.width = W;
@@ -74,7 +104,7 @@ export function earthBasemap(): Promise<string> {
 
         const i = (y * W + x) * 4;
         // cloud coverage (greyscale texture used as both colour and alpha)
-        const cAlpha = (cl[i]! / 255) * 0.42;
+        const cAlpha = (cl[i]! / 255) * 0.26;
 
         let r = d[i]!;
         let g = d[i + 1]!;

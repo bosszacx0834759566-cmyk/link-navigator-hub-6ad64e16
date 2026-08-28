@@ -284,6 +284,22 @@ export function MapScene({ state }: { state: OloLinkState }) {
             <stop offset="74%" stopColor="#4a86c8" stopOpacity="0.04" />
             <stop offset="100%" stopColor="#7fb3e8" stopOpacity="0.16" />
           </linearGradient>
+          {/* smooth heat-map style weather gradients */}
+          <radialGradient id="wx-cloud">
+            <stop offset="0%" stopColor="#cbd5e1" stopOpacity="0.28" />
+            <stop offset="45%" stopColor="#b6c3d4" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#b6c3d4" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="wx-rain">
+            <stop offset="0%" stopColor="#7dd3fc" stopOpacity="0.3" />
+            <stop offset="45%" stopColor="#38bdf8" stopOpacity="0.17" />
+            <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="wx-storm">
+            <stop offset="0%" stopColor="#f9a8d4" stopOpacity="0.32" />
+            <stop offset="45%" stopColor="#f472b6" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#f472b6" stopOpacity="0" />
+          </radialGradient>
         </defs>
 
         <g clipPath="url(#map-clip)">
@@ -323,32 +339,31 @@ export function MapScene({ state }: { state: OloLinkState }) {
             strokeDasharray={`${6 * inv} ${6 * inv}`}
           />
 
-        {/* weather cells */}
+        {/* weather cells — smooth heat-map gradients, low opacity */}
         {layers.weather &&
           profile.weather.map((c) => {
             const p = project(c.lat, c.lon);
             const color = WEATHER_COLOR[c.kind];
             const r = 12 + c.size * 90;
+            const grad = c.kind === 'STORM' ? 'wx-storm' : c.kind === 'RAIN' ? 'wx-rain' : 'wx-cloud';
             return (
-              <g key={c.id}>
-                <circle cx={p.x} cy={p.y} r={r} fill={color} fillOpacity={0.1 + c.severity / 700} />
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r={r}
-                  fill="none"
-                  stroke={color}
-                  strokeOpacity={0.5}
-                  strokeWidth={0.8 * inv}
-                  strokeDasharray={`${4 * inv} ${4 * inv}`}
-                >
-                  <animate attributeName="r" values={`${r};${r * 1.08};${r}`} dur="4s" repeatCount="indefinite" />
+              <g key={c.id} pointerEvents="none">
+                {/* broad atmospheric wash */}
+                <circle cx={p.x} cy={p.y} r={r * 1.7} fill={`url(#${grad})`} opacity={0.8}>
+                  <animate
+                    attributeName="r"
+                    values={`${r * 1.7};${r * 1.82};${r * 1.7}`}
+                    dur="6s"
+                    repeatCount="indefinite"
+                  />
                 </circle>
-                <g transform={`translate(${p.x} ${p.y - r - 4}) scale(${inv})`}>
+                {/* dense core */}
+                <circle cx={p.x} cy={p.y} r={r * 0.75} fill={`url(#${grad})`} opacity={0.55 + c.severity / 400} />
+                <g transform={`translate(${p.x} ${p.y - r * 0.75 - 5}) scale(${inv})`}>
                   <text
                     textAnchor="middle"
                     fill={color}
-                    fillOpacity={0.75}
+                    fillOpacity={0.8}
                     fontSize={6}
                     letterSpacing={1}
                     className="font-mono uppercase"
@@ -498,6 +513,20 @@ export function MapScene({ state }: { state: OloLinkState }) {
 
         <rect width={MAP_W} height={MAP_H} fill="url(#map-vignette)" pointerEvents="none" />
       </svg>
+
+      {/* quick weather overlay toggle */}
+      <button
+        type="button"
+        onClick={() => state.toggleLayer('weather')}
+        className={cn(
+          'absolute right-4 bottom-[70px] rounded-[10px] border px-3 py-2 font-mono text-[9px] uppercase tracking-[0.2em] backdrop-blur-md transition-colors',
+          layers.weather
+            ? 'border-sky-300/25 bg-sky-400/10 text-sky-200/90 hover:bg-sky-400/20'
+            : 'border-white/[0.07] bg-[#070b14]/72 text-foreground/50 hover:text-foreground/80'
+        )}
+      >
+        {layers.weather ? 'Weather · on' : 'Weather · off'}
+      </button>
 
       {/* map-mode readout — operational clarity for routing */}
       <div className="pointer-events-none absolute bottom-[70px] left-4 rounded-[10px] border border-white/[0.07] bg-[#070b14]/72 px-3 py-2 backdrop-blur-md">

@@ -185,10 +185,17 @@ export function MapScene({ state }: { state: OloLinkState }) {
     return () => svg.removeEventListener('wheel', onWheel);
   }, []);
 
+  const [grabbing, setGrabbing] = useState(false);
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
-    (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+    setGrabbing(true);
+    try {
+      (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* capture unavailable */
+    }
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = dragRef.current;
@@ -212,11 +219,13 @@ export function MapScene({ state }: { state: OloLinkState }) {
         /* pointer already released */
       }
     }
+    setGrabbing(false);
     window.setTimeout(() => {
       dragRef.current = null;
     }, 0);
   };
   const dragged = () => dragRef.current?.moved ?? false;
+
 
   const z = view.z;
   const inv = 1 / z;

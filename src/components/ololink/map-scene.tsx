@@ -244,56 +244,65 @@ export function MapScene({ state }: { state: OloLinkState }) {
   return (
     <div className="relative h-full w-full bg-[#03060d]">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${MAP_W} ${MAP_H}`}
         preserveAspectRatio="xMidYMid meet"
-        className="h-full w-full"
-        onClick={() => state.select(null)}
+        className={cn('h-full w-full touch-none', dragRef.current ? 'cursor-grabbing' : 'cursor-grab')}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onClick={() => {
+          if (!dragged()) state.select(null);
+        }}
       >
         <defs>
           <radialGradient id="map-vignette" cx="50%" cy="50%" r="72%">
             <stop offset="55%" stopColor="#03060d" stopOpacity="0" />
             <stop offset="100%" stopColor="#03060d" stopOpacity="0.92" />
           </radialGradient>
-          <filter id="map-basemap">
-            <feColorMatrix
-              type="matrix"
-              values="0.26 0.44 0.52 0 0.02
-                      0.34 0.62 0.72 0 0.04
-                      0.46 0.82 1.00 0 0.07
-                      0    0    0    1 0"
-            />
-            <feComponentTransfer>
-              <feFuncR type="linear" slope="1.9" intercept="0.02" />
-              <feFuncG type="linear" slope="1.9" intercept="0.03" />
-              <feFuncB type="linear" slope="1.9" intercept="0.05" />
-            </feComponentTransfer>
-          </filter>
+          <linearGradient id="map-atmos" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#7fb3e8" stopOpacity="0.16" />
+            <stop offset="26%" stopColor="#4a86c8" stopOpacity="0.04" />
+            <stop offset="74%" stopColor="#4a86c8" stopOpacity="0.04" />
+            <stop offset="100%" stopColor="#7fb3e8" stopOpacity="0.16" />
+          </linearGradient>
         </defs>
 
-        {/* ocean */}
-        <rect width={MAP_W} height={MAP_H} fill="#050a14" />
-        {/* landmass base */}
-        <image
-          href={earthMap}
-          x={0}
-          y={0}
-          width={MAP_W}
-          height={MAP_H}
-          opacity={0.9}
-          filter="url(#map-basemap)"
-          preserveAspectRatio="none"
-        />
+        <g transform={`translate(${view.x} ${view.y}) scale(${z})`}>
+          {/* deep ocean fallback */}
+          <rect width={MAP_W} height={MAP_H} fill="#0a1a2e" />
+          {/* flattened earth — same albedo / clouds / night lights as the globe */}
+          <image
+            href={basemap ?? earthDay}
+            x={0}
+            y={0}
+            width={MAP_W}
+            height={MAP_H}
+            preserveAspectRatio="none"
+          />
+          {/* atmospheric limb, matching the globe's halo */}
+          <rect width={MAP_W} height={MAP_H} fill="url(#map-atmos)" pointerEvents="none" />
 
-        {/* graticule */}
-        <g stroke="#38bdf8" strokeOpacity={0.07} strokeWidth={0.5}>
-          {Array.from({ length: 11 }, (_, i) => (i + 1) * (MAP_W / 12)).map((x) => (
-            <line key={`v${x}`} x1={x} y1={0} x2={x} y2={MAP_H} />
-          ))}
-          {Array.from({ length: 5 }, (_, i) => (i + 1) * (MAP_H / 6)).map((y) => (
-            <line key={`h${y}`} x1={0} y1={y} x2={MAP_W} y2={y} />
-          ))}
-        </g>
-        <line x1={0} y1={MAP_H / 2} x2={MAP_W} y2={MAP_H / 2} stroke="#38bdf8" strokeOpacity={0.16} strokeWidth={0.6} strokeDasharray="6 6" />
+          {/* graticule */}
+          <g stroke="#dbeafe" strokeOpacity={0.08} strokeWidth={0.5 * inv}>
+            {Array.from({ length: 11 }, (_, i) => (i + 1) * (MAP_W / 12)).map((x) => (
+              <line key={`v${x}`} x1={x} y1={0} x2={x} y2={MAP_H} />
+            ))}
+            {Array.from({ length: 5 }, (_, i) => (i + 1) * (MAP_H / 6)).map((y) => (
+              <line key={`h${y}`} x1={0} y1={y} x2={MAP_W} y2={y} />
+            ))}
+          </g>
+          <line
+            x1={0}
+            y1={MAP_H / 2}
+            x2={MAP_W}
+            y2={MAP_H / 2}
+            stroke="#e2e8f0"
+            strokeOpacity={0.16}
+            strokeWidth={0.6 * inv}
+            strokeDasharray={`${6 * inv} ${6 * inv}`}
+          />
 
         {/* weather cells */}
         {layers.weather &&

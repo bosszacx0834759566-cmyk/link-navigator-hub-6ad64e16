@@ -185,10 +185,17 @@ export function MapScene({ state }: { state: OloLinkState }) {
     return () => svg.removeEventListener('wheel', onWheel);
   }, []);
 
+  const [grabbing, setGrabbing] = useState(false);
+
   const onPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
-    (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+    setGrabbing(true);
+    try {
+      (e.currentTarget as SVGSVGElement).setPointerCapture(e.pointerId);
+    } catch {
+      /* capture unavailable */
+    }
   };
   const onPointerMove = (e: React.PointerEvent) => {
     const d = dragRef.current;
@@ -212,11 +219,13 @@ export function MapScene({ state }: { state: OloLinkState }) {
         /* pointer already released */
       }
     }
+    setGrabbing(false);
     window.setTimeout(() => {
       dragRef.current = null;
     }, 0);
   };
   const dragged = () => dragRef.current?.moved ?? false;
+
 
   const z = view.z;
   const inv = 1 / z;
@@ -247,16 +256,24 @@ export function MapScene({ state }: { state: OloLinkState }) {
         ref={svgRef}
         viewBox={`0 0 ${MAP_W} ${MAP_H}`}
         preserveAspectRatio="xMidYMid meet"
-        className={cn('h-full w-full touch-none', dragRef.current ? 'cursor-grabbing' : 'cursor-grab')}
+        className={cn(
+          'h-full w-full touch-none select-none [&_text]:select-none',
+          grabbing ? 'cursor-grabbing' : 'cursor-grab'
+        )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onPointerLeave={endDrag}
+        onDragStart={(e) => e.preventDefault()}
         onClick={() => {
           if (!dragged()) state.select(null);
         }}
       >
         <defs>
+          <clipPath id="map-clip">
+            <rect x={0} y={0} width={MAP_W} height={MAP_H} />
+          </clipPath>
           <radialGradient id="map-vignette" cx="50%" cy="50%" r="72%">
             <stop offset="55%" stopColor="#03060d" stopOpacity="0" />
             <stop offset="100%" stopColor="#03060d" stopOpacity="0.92" />
@@ -269,7 +286,9 @@ export function MapScene({ state }: { state: OloLinkState }) {
           </linearGradient>
         </defs>
 
+        <g clipPath="url(#map-clip)">
         <g transform={`translate(${view.x} ${view.y}) scale(${z})`}>
+
           {/* deep ocean fallback */}
           <rect width={MAP_W} height={MAP_H} fill="#0a1a2e" />
           {/* flattened earth — same albedo / clouds / night lights as the globe */}
@@ -474,6 +493,8 @@ export function MapScene({ state }: { state: OloLinkState }) {
         })}
 
         </g>
+        </g>
+
 
         <rect width={MAP_W} height={MAP_H} fill="url(#map-vignette)" pointerEvents="none" />
       </svg>

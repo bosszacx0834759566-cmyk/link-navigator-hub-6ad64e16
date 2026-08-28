@@ -433,7 +433,7 @@ export function MapScene({ state }: { state: OloLinkState }) {
           return (
             <g
               key={a.id}
-              transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)})`}
+              transform={`translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) scale(${inv})`}
               className="cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();

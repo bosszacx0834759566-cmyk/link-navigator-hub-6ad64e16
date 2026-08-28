@@ -357,19 +357,19 @@ export function MapScene({ state }: { state: OloLinkState }) {
                 fillOpacity={active ? 0.06 : 0.025}
                 stroke={active ? '#38bdf8' : '#64748b'}
                 strokeOpacity={active ? 0.55 : 0.28}
-                strokeWidth={0.7}
-                strokeDasharray="3 4"
+                strokeWidth={0.7 * inv}
+                strokeDasharray={`${3 * inv} ${4 * inv}`}
               />
-              <text
-                x={p.x - 44}
-                y={p.y - 34}
-                fill={active ? '#bae6fd' : '#94a3b8'}
-                fontSize={7}
-                letterSpacing={1.6}
-                className="font-mono uppercase"
-              >
-                {rg.name}
-              </text>
+              <g transform={`translate(${p.x - 44} ${p.y - 34}) scale(${inv})`}>
+                <text
+                  fill={active ? '#bae6fd' : '#94a3b8'}
+                  fontSize={7}
+                  letterSpacing={1.6}
+                  className="font-mono uppercase"
+                >
+                  {rg.name}
+                </text>
+              </g>
             </g>
           );
         })}

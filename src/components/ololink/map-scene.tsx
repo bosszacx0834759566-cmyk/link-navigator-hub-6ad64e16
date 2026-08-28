@@ -392,23 +392,23 @@ export function MapScene({ state }: { state: OloLinkState }) {
                   state.select({ type: 'link', id: l.segment.id });
                 }}
               >
-                <path d={d} stroke="transparent" strokeWidth={8} fill="none" />
+                <path d={d} stroke="transparent" strokeWidth={8 * inv} fill="none" />
                 <path
                   d={d}
                   fill="none"
                   stroke={color}
-                  strokeWidth={isSelected ? 2.2 : onRoute ? 1.6 : 0.8}
+                  strokeWidth={(isSelected ? 2.2 : onRoute ? 1.6 : 0.8) * inv}
                   strokeOpacity={isSelected ? 1 : onRoute ? 0.9 : 0.32}
-                  strokeDasharray={l.status === 'UNAVAILABLE' ? '3 5' : undefined}
+                  strokeDasharray={l.status === 'UNAVAILABLE' ? `${3 * inv} ${5 * inv}` : undefined}
                 />
                 {(onRoute || isSelected) && l.status !== 'UNAVAILABLE' && (
                   <path
                     d={d}
                     fill="none"
                     stroke="#e0f2fe"
-                    strokeWidth={1.4}
+                    strokeWidth={1.4 * inv}
                     strokeOpacity={0.85}
-                    strokeDasharray="5 26"
+                    strokeDasharray={`${5 * inv} ${26 * inv}`}
                   >
                     <animate attributeName="stroke-dashoffset" from="31" to="0" dur="1.1s" repeatCount="indefinite" />
                   </path>

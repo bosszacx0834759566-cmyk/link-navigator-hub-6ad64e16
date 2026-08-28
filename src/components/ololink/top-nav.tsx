@@ -3,7 +3,7 @@
 import { cn } from '@/lib/utils';
 import type { RailId } from '@/hooks/use-ololink';
 import { RAIL_ITEMS } from './rail';
-import logoAsset from '@/assets/logo.png.asset.json';
+import logoUrl from '@/assets/logo.png';
 
 function TopNavButton({
   item,

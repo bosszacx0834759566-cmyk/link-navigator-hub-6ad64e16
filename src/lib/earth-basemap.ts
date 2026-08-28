@@ -13,8 +13,8 @@ import earthClouds from '@/assets/earth_clouds_1024.png';
 const SUN_LAT = 14;
 const SUN_LON = 178;
 
-const W = 1600;
-const H = 800;
+const W = 2048;
+const H = 1024;
 
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((resolve, reject) => {
@@ -85,7 +85,7 @@ export function earthBasemap(): Promise<string> {
         b = b * (1 - cAlpha) + 238 * cAlpha;
 
         // sun lighting: soft terminator, dark but not black night side
-        const lightFactor = 0.1 + 0.95 * smoothstep(-0.18, 0.32, cosSun);
+        const lightFactor = 0.34 + 0.72 * smoothstep(-0.18, 0.32, cosSun);
         r *= lightFactor;
         g *= lightFactor;
         b *= lightFactor;
@@ -106,7 +106,7 @@ export function earthBasemap(): Promise<string> {
       }
     }
     ctx.putImageData(image, 0, 0);
-    return out.toDataURL('image/jpeg', 0.9);
+    return out.toDataURL('image/jpeg', 0.92);
   })();
   return cache;
 }

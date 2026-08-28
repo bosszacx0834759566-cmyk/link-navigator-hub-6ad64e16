@@ -339,32 +339,31 @@ export function MapScene({ state }: { state: OloLinkState }) {
             strokeDasharray={`${6 * inv} ${6 * inv}`}
           />
 
-        {/* weather cells */}
+        {/* weather cells — smooth heat-map gradients, low opacity */}
         {layers.weather &&
           profile.weather.map((c) => {
             const p = project(c.lat, c.lon);
             const color = WEATHER_COLOR[c.kind];
             const r = 12 + c.size * 90;
+            const grad = c.kind === 'STORM' ? 'wx-storm' : c.kind === 'RAIN' ? 'wx-rain' : 'wx-cloud';
             return (
-              <g key={c.id}>
-                <circle cx={p.x} cy={p.y} r={r} fill={color} fillOpacity={0.1 + c.severity / 700} />
-                <circle
-                  cx={p.x}
-                  cy={p.y}
-                  r={r}
-                  fill="none"
-                  stroke={color}
-                  strokeOpacity={0.5}
-                  strokeWidth={0.8 * inv}
-                  strokeDasharray={`${4 * inv} ${4 * inv}`}
-                >
-                  <animate attributeName="r" values={`${r};${r * 1.08};${r}`} dur="4s" repeatCount="indefinite" />
+              <g key={c.id} pointerEvents="none">
+                {/* broad atmospheric wash */}
+                <circle cx={p.x} cy={p.y} r={r * 1.7} fill={`url(#${grad})`} opacity={0.8}>
+                  <animate
+                    attributeName="r"
+                    values={`${r * 1.7};${r * 1.82};${r * 1.7}`}
+                    dur="6s"
+                    repeatCount="indefinite"
+                  />
                 </circle>
-                <g transform={`translate(${p.x} ${p.y - r - 4}) scale(${inv})`}>
+                {/* dense core */}
+                <circle cx={p.x} cy={p.y} r={r * 0.75} fill={`url(#${grad})`} opacity={0.55 + c.severity / 400} />
+                <g transform={`translate(${p.x} ${p.y - r * 0.75 - 5}) scale(${inv})`}>
                   <text
                     textAnchor="middle"
                     fill={color}
-                    fillOpacity={0.75}
+                    fillOpacity={0.8}
                     fontSize={6}
                     letterSpacing={1}
                     className="font-mono uppercase"

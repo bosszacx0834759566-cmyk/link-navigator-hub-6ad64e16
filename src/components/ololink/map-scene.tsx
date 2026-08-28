@@ -284,6 +284,22 @@ export function MapScene({ state }: { state: OloLinkState }) {
             <stop offset="74%" stopColor="#4a86c8" stopOpacity="0.04" />
             <stop offset="100%" stopColor="#7fb3e8" stopOpacity="0.16" />
           </linearGradient>
+          {/* smooth heat-map style weather gradients */}
+          <radialGradient id="wx-cloud">
+            <stop offset="0%" stopColor="#cbd5e1" stopOpacity="0.28" />
+            <stop offset="45%" stopColor="#b6c3d4" stopOpacity="0.16" />
+            <stop offset="100%" stopColor="#b6c3d4" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="wx-rain">
+            <stop offset="0%" stopColor="#7dd3fc" stopOpacity="0.3" />
+            <stop offset="45%" stopColor="#38bdf8" stopOpacity="0.17" />
+            <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="wx-storm">
+            <stop offset="0%" stopColor="#f9a8d4" stopOpacity="0.32" />
+            <stop offset="45%" stopColor="#f472b6" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#f472b6" stopOpacity="0" />
+          </radialGradient>
         </defs>
 
         <g clipPath="url(#map-clip)">

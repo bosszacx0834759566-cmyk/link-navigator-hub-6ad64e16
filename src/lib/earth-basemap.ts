@@ -85,7 +85,7 @@ export function earthBasemap(): Promise<string> {
         b = b * (1 - cAlpha) + 238 * cAlpha;
 
         // sun lighting: soft terminator, dark but not black night side
-        const lightFactor = 0.34 + 0.72 * smoothstep(-0.18, 0.32, cosSun);
+        const lightFactor = 0.46 + 0.62 * smoothstep(-0.18, 0.32, cosSun);
         r *= lightFactor;
         g *= lightFactor;
         b *= lightFactor;

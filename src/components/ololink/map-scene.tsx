@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import earthMap from '@/assets/earth-map.jpg';
+import earthDay from '@/assets/earth_atmos_2048.jpg';
+import { earthBasemap } from '@/lib/earth-basemap';
 import { cn } from '@/lib/utils';
 import type { OloLinkState } from '@/hooks/use-ololink';
 import {

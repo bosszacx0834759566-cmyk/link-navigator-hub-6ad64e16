@@ -78,7 +78,7 @@ export function earthBasemap(): Promise<string> {
     ]);
     const d = draw(day);
     const n = draw(night);
-    const cl = draw(clouds);
+    const cl = drawCloudsBlurred(clouds);
 
     const out = document.createElement('canvas');
     out.width = W;
@@ -100,7 +100,7 @@ export function earthBasemap(): Promise<string> {
 
         const i = (y * W + x) * 4;
         // cloud coverage (greyscale texture used as both colour and alpha)
-        const cAlpha = (cl[i]! / 255) * 0.42;
+        const cAlpha = (cl[i]! / 255) * 0.26;
 
         let r = d[i]!;
         let g = d[i + 1]!;
